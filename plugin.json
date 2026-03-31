@@ -1,0 +1,19 @@
+{
+  "id": "com.acode.svelteformatter",
+  "name": "Svelte Formatter Offline",
+  "main": "dist/main.js",
+  "version": "1.5.1",
+  "readme": "readme.md",
+  "icon": "icon.png",
+  "changelogs": "changelogs.md",
+  "files": [],
+  "price": 0,
+  "license": "MIT",
+  "keywords": ["svelte", "prettier", "formatter", "offline"],
+  "minVersionCode": 290,
+  "author": {
+    "name": "DIBBO",
+    "email": "",
+    "github": "GIT-DIBBO"
+  }
+}

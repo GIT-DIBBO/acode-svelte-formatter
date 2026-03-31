@@ -1,0 +1,26 @@
+{
+  "name": "acode-svelte-formatter",
+  "version": "1.2.0",
+  "description": "Acode plugin – formats .svelte files offline using Prettier 3 and prettier-plugin-svelte",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "node build.js --watch"
+  },
+  "keywords": [
+    "acode",
+    "acode-plugin",
+    "svelte",
+    "prettier",
+    "formatter"
+  ],
+  "author": "DIBBO",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "prettier": "^3.5.3",
+    "prettier-plugin-svelte": "^3.5.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

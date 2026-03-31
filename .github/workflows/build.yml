@@ -1,0 +1,99 @@
+name: Build and Release Plugin
+
+on:
+  push:
+    branches: [main]
+    tags:     ['v*.*.*']
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+# Serialize all runs that target main.
+# If a new push arrives while a build is in progress, it waits instead of
+# running concurrently — this eliminates the "fetch first" race condition.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # ─── Build ───────────────────────────────────────────────────────────────────
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0          # full history required for rebase
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production bundle
+        run: node build.js
+
+      - name: Commit compiled bundle
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name  "github-actions[bot]"
+          git add dist/main.js
+          if git diff --staged --quiet; then
+            echo "dist/main.js unchanged — nothing to commit."
+          else
+            git commit -m "chore: update compiled bundle [skip ci]"
+            git pull --rebase origin main
+            git push
+          fi
+
+      - name: Upload .aip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: svelte-formatter-plugin
+          path: svelte-formatter.aip
+          retention-days: 30
+
+  # ─── Release (version tags only) ────────────────────────────────────────────
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production bundle
+        run: node build.js
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files:                  svelte-formatter.aip
+          body_path:              changelogs.md
+          generate_release_notes: false
